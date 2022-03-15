@@ -11,6 +11,7 @@ import java.util.List;
  */
 
 public interface EmployeeDao {
+
     //Save Employee
     public int saveEmployee(EmployeeRecord epmRecord);
 
@@ -21,7 +22,7 @@ public interface EmployeeDao {
     public int empDelete(String empEmail);
 
     //Update Employee Address By Email
-    public int empAddress(String empEmail,EmployeeRecord empRecord);
+    public int empAddress(String empEmail, EmployeeRecord empRecord);
 
     //Update Employee Info
     public int updateEmp(EmployeeRecord empRecord);

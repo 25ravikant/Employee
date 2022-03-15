@@ -3,7 +3,13 @@ package dao;
 import connection.MySqlConnection;
 import model.EmployeeAddressRecord;
 import model.EmployeeRecord;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
 
+import javax.persistence.Query;
 import java.sql.*;
 import java.util.ArrayList;
 import java.sql.Date;
@@ -20,97 +26,90 @@ public class EmployeeDaoImpl implements EmployeeDao {
     @Override
     public int saveEmployee(EmployeeRecord empRecord) {
        int status =0;
-       Connection conn = MySqlConnection.sqlConnection();
-        PreparedStatement ps = null;
+        Configuration cfg = new Configuration();
+        //Hibernate configuration file
+        cfg.configure("hibernate.cfg.xml");
+        SessionFactory sessionFactory = cfg.buildSessionFactory();
+
+        //getting session object from session factory
+        Session session = sessionFactory.openSession();
        try {
-           ps = conn.prepareStatement("insert into employee(employeeName,dob,gender,contactNo,email,post,qualification,street,city,pincode,state,country)values(?,?,?,?,?,?,?,?,?,?,?,?)");
-           ps.setString(1,empRecord.getEmployeeName());
-           java.sql.Date sqlDate=new java.sql.Date(empRecord.getDob().getTime());
-           ps.setDate(2,sqlDate);
-           ps.setString(3,empRecord.getGender());
-           ps.setString(4,empRecord.getContact());
-           ps.setString(5,empRecord.getEmail());
-           ps.setString(6,empRecord.getPost());
-           ps.setString(7,empRecord.getQualification());
-           ps.setString(8,empRecord.getEmpAddress().getStreet());
-           ps.setString(9,empRecord.getEmpAddress().getCity());
-           ps.setString(10,empRecord.getEmpAddress().getPin());
-           ps.setString(11,empRecord.getEmpAddress().getState());
-           ps.setString(12,empRecord.getEmpAddress().getCountry());
-           status = ps.executeUpdate();
-       } catch (SQLException ex) {
+           //getting transaction object from session object
+           Transaction trx = session.beginTransaction();
+
+           session.save(empRecord);
+           trx.commit();
+
+           session.close();
+       }catch (HibernateException ex){
            ex.printStackTrace();
-       } finally {
-           try {
-               conn.close();
-               ps.close();
-           } catch (SQLException e) {
-               e.printStackTrace();
+        }
+       finally {
+           if(session!= null) {
+               session.close();
+               sessionFactory.close();
            }
        }
-       return status;
+        return status;
     }
+
 // Search Employee By Email
     @Override
     public List<EmployeeRecord> getEmployee(String empEmail) {
-        List<EmployeeRecord> list = new ArrayList<>();
-        Connection conn = MySqlConnection.sqlConnection();
-        PreparedStatement ps = null;
+        List<EmployeeRecord> employeeRecords = null;
+        Configuration cfg = new Configuration();
+        //Hibernate configuration file
+        cfg.configure("hibernate.cfg.xml");
+        SessionFactory sessionFactory = cfg.buildSessionFactory();
+
+        //getting session object from session factory
+        Session session = sessionFactory.openSession();
         try {
-            ps = conn.prepareStatement("select * from employee where email=?");
-            ps.setString(1,empEmail);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next())
-            {
-                EmployeeRecord empRec = new EmployeeRecord();
-                EmployeeAddressRecord empAdd = new EmployeeAddressRecord();
-                empRec.setEmployeeName(rs.getString("employeeName"));
-                empRec.setDob(rs.getDate("dob"));
-                empRec.setGender(rs.getString("gender"));
-                empRec.setContact(rs.getString("contactNo"));
-                empRec.setEmail(rs.getString("email"));
-                empRec.setPost(rs.getString("post"));
-                empRec.setQualification(rs.getString("qualification"));
+            employeeRecords = session.createQuery("from EmployeeRecord where email='" + empEmail + "' ").list();
 
-                empAdd.setStreet(rs.getString("street"));
-                empAdd.setCity(rs.getString("city"));
-                empAdd.setPin(rs.getString("pincode"));
-                empAdd.setState(rs.getString("state"));
-                empAdd.setCountry(rs.getString("country"));
+            session.close();
 
-                empRec.setEmpAddress(empAdd);
-                list.add(empRec);
-            }
-        } catch (SQLException ex) {
+        }catch (HibernateException ex) {
             ex.printStackTrace();
-        } finally {
-            try {
-                conn.close();
-                ps.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
+        }finally {
+            if(session!= null) {
+                session.close();
+                sessionFactory.close();
             }
         }
-        return list;
+        return employeeRecords;
 
-    }
+      }
+
 //Delete Employee By Employee Email
     @Override
     public int empDelete(String empEmail) {
         int status =0;
-        Connection conn = MySqlConnection.sqlConnection();
-        PreparedStatement ps = null;
+        Configuration cfg = new Configuration();
+        //Hibernate configuration file
+        cfg.configure("hibernate.cfg.xml");
+        SessionFactory sessionFactory = cfg.buildSessionFactory();
+        EmployeeRecord employeeRecord = new EmployeeRecord();
+
+        //getting session object from session factory
+        Session session = sessionFactory.openSession();
+
+        //getting transaction object from session object
+        Transaction trx = session.beginTransaction();
         try {
-            ps = conn.prepareStatement("delete from employee where email=?");
-            ps.setString(1,empEmail);
-            status = ps.executeUpdate();
-        } catch (SQLException ex) {
+
+
+            session.createQuery("delete from EmployeeRecord where email='" + empEmail + "' ").executeUpdate();
+
+            trx.commit();
+            session.close();
+
+        }catch (HibernateException ex) {
             ex.printStackTrace();
         } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
+            if(session!= null) {
+                session.close();
+                sessionFactory.close();
             }
         }
         return status;
@@ -120,25 +119,30 @@ public class EmployeeDaoImpl implements EmployeeDao {
     @Override
     public int empAddress(String empEmail,EmployeeRecord empRec) {
         int status =0;
-        Connection conn = MySqlConnection.sqlConnection();
-        PreparedStatement ps = null;
+        Configuration cfg = new Configuration();
+
+        //Hibernate configuration file
+        cfg.configure("hibernate.cfg.xml");
+        SessionFactory sessionFactory = cfg.buildSessionFactory();
+
+        //getting session object from session factory
+        Session session = sessionFactory.openSession();
+
+        //getting transaction object from session object
+        Transaction trx = session.beginTransaction();
         try {
-            ps = conn.prepareStatement("update employee set street=?,city=?,pincode=?,state=?,country=? where email=?");
-            ps.setString(1,empRec.getEmpAddress().getStreet());
-            ps.setString(2,empRec.getEmpAddress().getCity());
-            ps.setString(3,empRec.getEmpAddress().getPin());
-            ps.setString(4,empRec.getEmpAddress().getState());
-            ps.setString(5,empRec.getEmpAddress().getCountry());
-            ps.setString(6,empEmail);
-            status = ps.executeUpdate();
-        } catch (SQLException ex) {
+            status = session.createQuery("update from EmployeeRecord set street='" + empRec.getEmpAddress().getStreet() + "'," +
+                    "city='" + empRec.getEmpAddress().getCity() + "',pin='" + empRec.getEmpAddress().getPin() + "'," +
+                    "state='" + empRec.getEmpAddress().getState() + "',country='" + empRec.getEmpAddress().getCountry() + "' where email='" + empEmail + "'").executeUpdate();
+
+            trx.commit();
+            session.close();
+        } catch (HibernateException ex) {
             ex.printStackTrace();
         } finally {
-            try {
-                conn.close();
-                ps.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
+            if(session!= null) {
+                session.close();
+                sessionFactory.close();
             }
         }
         return status;
@@ -148,74 +152,63 @@ public class EmployeeDaoImpl implements EmployeeDao {
     @Override
     public int updateEmp(EmployeeRecord empRecord) {
         int status =0;
-        Connection conn = MySqlConnection.sqlConnection();
-        PreparedStatement ps = null;
-        try {
-            ps = conn.prepareStatement("update employee set employeeName=?,dob=?,gender=?,contactNo=?,post=?,qualification=? where email=?");
-            ps.setString(1,empRecord.getEmployeeName());
-            java.sql.Date sqlDate=new java.sql.Date(empRecord.getDob().getTime());
-            ps.setDate(2,sqlDate);
-            ps.setString(3,empRecord.getGender());
-            ps.setString(4,empRecord.getContact());
-            ps.setString(5,empRecord.getPost());
-            ps.setString(6,empRecord.getQualification());
-            ps.setString(7,empRecord.getEmail());
-            status = ps.executeUpdate();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        } finally {
-            try {
-                conn.close();
-                ps.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
+        Configuration cfg = new Configuration();
+
+        //Hibernate configuration file
+        cfg.configure("hibernate.cfg.xml");
+        SessionFactory sessionFactory = cfg.buildSessionFactory();
+
+        //getting session object from session factory
+        Session session = sessionFactory.openSession();
+
+        //getting transaction object from session object
+        Transaction trx = session.beginTransaction();
+          try {
+              status = session.createQuery("update from EmployeeRecord set employeeName='" + empRecord.getEmployeeName() + "'," +
+                      "gender='" + empRecord.getGender() + "',contact='" + empRecord.getContact() + "',post='" + empRecord.getPost() + "'" +
+                      " where email='" + empRecord.getEmail() + "'").executeUpdate();
+
+              trx.commit();
+              session.close();
+          } catch (HibernateException ex) {
+              ex.printStackTrace();
+          }  finally {
+              if(session!= null) {
+                  session.close();
+                  sessionFactory.close();
+              }
+          }
+
         return status;
     }
 
     //Search All Employee
     @Override
     public List<EmployeeRecord> getAllEmp() {
-        List<EmployeeRecord> list = new ArrayList<>();
-        Connection conn = MySqlConnection.sqlConnection();
-        PreparedStatement ps = null;
-        try {
-            ps = conn.prepareStatement("select * from employee");
-            ResultSet rs = ps.executeQuery();
-            while (rs.next())
-            {
-                EmployeeRecord empRec = new EmployeeRecord();
-                EmployeeAddressRecord empAdd = new EmployeeAddressRecord();
-                empRec.setEmployeeName(rs.getString("employeeName"));
-                empRec.setDob(rs.getDate("dob"));
-                empRec.setGender(rs.getString("gender"));
-                empRec.setContact(rs.getString("contactNo"));
-                empRec.setEmail(rs.getString("email"));
-                empRec.setPost(rs.getString("post"));
-                empRec.setQualification(rs.getString("qualification"));
+        List<EmployeeRecord> employeeRecords = null;
+        Configuration cfg = new Configuration();
+        //Hibernate configuration file
+        cfg.configure("hibernate.cfg.xml");
+        SessionFactory sessionFactory = cfg.buildSessionFactory();
+        //getting session object from session factory
+        Session session = sessionFactory.openSession();
+        //getting transaction object from session object
 
-                empAdd.setStreet(rs.getString("street"));
-                empAdd.setCity(rs.getString("city"));
-                empAdd.setPin(rs.getString("pincode"));
-                empAdd.setState(rs.getString("state"));
-                empAdd.setCountry(rs.getString("country"));
+       Transaction trx = session.beginTransaction();
+          try {
+              employeeRecords = session.createQuery("from EmployeeRecord").list();
+              trx.commit();
+              session.close();
+          } catch (HibernateException ex) {
+              ex.printStackTrace();
+          }  finally {
+              if(session!= null) {
+                  session.close();
+                  sessionFactory.close();
+              }
+          }
+        return employeeRecords;
 
-                empRec.setEmpAddress(empAdd);
-                list.add(empRec);
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        } finally {
-            try {
-                conn.close();
-                ps.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return list;
     }
-
 
 }

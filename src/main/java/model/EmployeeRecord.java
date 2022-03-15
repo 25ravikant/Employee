@@ -1,5 +1,8 @@
 package model;
 
+
+
+import javax.persistence.*;
 import java.util.Date;
 
 /* Employee Record
@@ -7,7 +10,11 @@ import java.util.Date;
  * version 1.0
  * since 03-03-2022
  */
+@Entity
+@Table(name = "employee")
 public class EmployeeRecord {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
     private String employeeName;
     private Date dob;

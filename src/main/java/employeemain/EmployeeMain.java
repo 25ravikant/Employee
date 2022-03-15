@@ -102,20 +102,16 @@ public class EmployeeMain {
                     EmployeeRecord emp = new EmployeeRecord(empName,empDobDate,empGender,empContact,empEmail,empPost,empQualification,empAddress);
                     //Employee Dao
                     EmployeeDao empDao = new EmployeeDaoImpl();
-                    int status = empDao.saveEmployee(emp);
-                    if(status>0) {
-                        log.info("Record has been Saved");
-                    } else {
-                        log.info("Record not Saved");
-                    }
+                    empDao.saveEmployee(emp);
 
                     break;
                 case 2:
                     System.out.print("Enter Employee Email  :");
                     String empEmail1 = scannerString.nextLine();
                     EmployeeDao emDao = new EmployeeDaoImpl();
-                    List<EmployeeRecord> list1 = emDao.getEmployee(empEmail1);
-                    list1.forEach((n)-> System.out.println(n));
+                    List<EmployeeRecord> employeeRecords = emDao.getEmployee(empEmail1);
+                    employeeRecords.forEach((n)-> System.out.println(n));
+//                    employeeRecords.forEach((n)-> System.out.println(n));
                     break;
                 case 3:
                     System.out.print("Enter Employee Email for Update :");
@@ -185,17 +181,13 @@ public class EmployeeMain {
                     System.out.println("Enter Employee Email for Delete :");
                     String emEmail = scannerString.nextLine();
                     EmployeeDao employeeDao = new EmployeeDaoImpl();
-                    int status2 = employeeDao.empDelete(emEmail);
-                    if(status2>0) {
-                        log.info("Record has been Deleted");
-                    } else {
-                        log.info("Record has been not Deleted");
-                    }
+                    employeeDao.empDelete(emEmail);
+
                     break;
                 case 6:
                     EmployeeDao employeeDao1 = new EmployeeDaoImpl();
-                    List<EmployeeRecord> list = employeeDao1.getAllEmp();
-                    list.forEach((n)-> System.out.println(n));
+                    List<EmployeeRecord> employeeRecords1 = employeeDao1.getAllEmp();
+                    employeeRecords1.forEach((n)-> System.out.println(n));
                     break;
                 default:
                     System.out.println("");

@@ -1,10 +1,14 @@
 package model;
+
+import javax.persistence.Embeddable;
+
 /* Employee Address Record
  * @author Ravi Kant
  * @version 1.0
  * @since 03-03-2022
  */
 
+@Embeddable
 public class EmployeeAddressRecord {
     private String street;
     private String city;
