@@ -16,7 +16,7 @@ public interface EmployeeDao {
     public int saveEmployee(EmployeeRecord epmRecord);
 
     //Search Employee By Email
-    public List<EmployeeRecord> getEmployee(String empEmail);
+    public EmployeeRecord getEmployee(String empEmail);
 
     //Delete Employee By Email
     public int empDelete(String empEmail);

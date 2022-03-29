@@ -1,6 +1,6 @@
 package model;
 
-import javax.persistence.Embeddable;
+
 
 /* Employee Address Record
  * @author Ravi Kant
@@ -8,7 +8,6 @@ import javax.persistence.Embeddable;
  * @since 03-03-2022
  */
 
-@Embeddable
 public class EmployeeAddressRecord {
     private String street;
     private String city;
